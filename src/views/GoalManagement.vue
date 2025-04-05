@@ -12,7 +12,7 @@
             </div>
         </header>
         <main>
-            <div v-for="goal in goals" :key="goal.id" class="goal-card">
+            <div v-for="goal in goals" :key="goal.id" class="goal-card" @click="navigateToGoalInfo(goal.id)">
                 <div class="goal-header icon-span">
                     <Icon icon="tabler:point" width="16" height="16" />
                     <span class="goal-title">{{ goal.title }}</span>
@@ -37,15 +37,28 @@
 <script setup lang="ts">
 import { Icon } from '@iconify/vue';
 import { ref } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { computed, onMounted } from 'vue';
 import { useGoalDirStore } from '../stores/goalDirStore';
 import { useGoalStore } from '../stores/goalStore';
+import GoalDialog from '../components/GoalDialog.vue';
+
 
 
 const route = useRoute();
+const router = useRouter();
 const goalDirStore = useGoalDirStore();
 const goalStore = useGoalStore();
+
+const navigateToGoalInfo = (goalId: string) => {
+    router.push({
+        name: 'GoalInformation',
+        params: { 
+            id: route.params.id, // Keep current directory id
+            goalId: goalId      // Pass goal id
+        }
+    });
+};
 
 // 计算出但前所在的目标节点的 ID
 const currentDirId = computed(() => {
@@ -80,6 +93,8 @@ function formatDate(dateString: any) {
     // return date.toLocaleDateString(); // Uses browser locale format
     // return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
+
+// 编辑目标相关
 
 </script>
 

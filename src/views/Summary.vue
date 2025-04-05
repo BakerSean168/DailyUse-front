@@ -4,14 +4,11 @@
             <Icon icon="octicon:graph-16" width="16" height="16" />
             <h1>Summary</h1>
         </header>
-        <div class="box1">
-            x: {{ x }},y: {{ y }}
-            <div class="box2">box2</div>
-        </div>
-        <div v-if="isMobile" class="box2">isMobile</div>
+
+       
     </div>
 </template>
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
 
 const nav = ref("summary");
@@ -19,7 +16,7 @@ const nav = ref("summary");
 const x = ref(0);
 const y = ref(0);
 
-const updateMouse = (e) => {
+const updateMouse = (e: MouseEvent) => {
     x.value = e.clientX;
     y.value = e.clientY;
 }
