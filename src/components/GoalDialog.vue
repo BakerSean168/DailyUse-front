@@ -28,10 +28,19 @@
               <label for="title">目标</label>
               <span class="error" v-if="validationErrors.title">{{ validationErrors.title }}</span>
             </div>
-
-            <input type="text" id="title" placeholder="一段话来描述自己的目标" v-model="tempGoal.title" required
-              @blur="titleValidation">
+            <div class="goal-title-input">
+              <input type="text" id="title" placeholder="一段话来描述自己的目标" v-model="tempGoal.title" required
+                @blur="titleValidation">
+              </input>
+              <div class="goal-color-picker">
+                <input type="color" id="goalColor" v-model="tempGoal.color" class="color-input">
+                  <Icon icon="fluent:color-24-filled" width="40" height="40" :style="{ color: tempGoal.color || '#FF5733' }" />
+                </input>
+              </div>
+            </div>
           </div>
+          <!-- 颜色 -->
+
 
           <div class="form-group">
             <label for="folder">目标文件夹</label>
@@ -61,23 +70,22 @@
           </div>
         </div>
 
-        <!-- Key Results Tab -->
+        <!-- 关键结果 -->
         <div v-show="activeTab === 1" class="tab-pane">
           <div class="kr-list">
             <!-- Existing Key Results -->
-            <div v-for="kr in tempGoal.keyResults" :key="kr.id" class="kr-list-item"
-              @click="editKeyResult(kr.id)">
+            <div v-for="kr in tempGoal.keyResults" :key="kr.id" class="kr-list-item" @click="startEditKeyResult(kr.id)">
               <div class="kr-info">
                 <Icon icon="mdi:target" width="20" height="20" />
                 <span class="kr-name">{{ kr.name }}</span>
               </div>
-              <button class="icon-btn" @click.stop="deleteKeyResult(props.goalId, kr.id)">
+              <button class="icon-btn" @click.stop="deleteKeyResult(kr.id)">
                 <Icon icon="material-symbols:delete-outline" width="20" height="20" />
               </button>
             </div>
 
             <!-- Add New Key Result Button -->
-            <div class="kr-list-item add-kr" @click="addKeyResult">
+            <div class="kr-list-item add-kr" @click="startCreateKeyResult">
               <div class="kr-info">
                 <Icon icon="material-symbols:add" width="20" height="20" />
                 <span class="kr-name placeholder">添加关键结果</span>
@@ -101,21 +109,21 @@
       </div>
     </div>
   </div>
-  <KeyResultDialog v-if="showKrDialog" :visible="showKrDialog" :mode="krDialogMode" :goal-id="props.goalId"
-    :key-result-id="editingKeyResultId" @close="showKrDialog = false" @update="updateKeyResult"
-    @create="createKeyResult" />
+  <KeyResultDialog v-if="showKeyResultDialog" :visible="showKeyResultDialog" :mode="editKeyResultMode" :goal-id="props.goalId"
+    :key-result-id="editKeyResultId" @cancel="cancelKeyResultEdit" @save="saveKeyResult" />
 </template>
 
 <script setup lang="ts">
-import { ref, computed, reactive, onMounted, watch } from 'vue';
+import { ref, computed, reactive, watch } from 'vue';
 import { Icon } from '@iconify/vue';
 import { useGoalStore } from '../stores/goalStore';
 import { useGoalDirStore } from '../stores/goalDirStore';
-import type { IGoal, IKeyResult, IKeyResultCreate } from '../types/type';
-import { v4 as uuidv4 } from 'uuid';
+import type { IGoal } from '../types/type';
 import KeyResultDialog from './KeyResultDialog.vue';
 import { storeToRefs } from 'pinia';
+import { useGoalDialog } from '../composables/useGoalDialog';
 
+const { showKeyResultDialog, editKeyResultId, editKeyResultMode , startCreateKeyResult, startEditKeyResult, cancelKeyResultEdit ,saveKeyResult, deleteKeyResult } = useGoalDialog();
 // 传入参数
 // visible: 是否显示
 // goal: 目标对象
@@ -155,12 +163,7 @@ watch(() => props.visible, (newVisible) => {
   if (newVisible) {
     if (props.mode === 'edit' && props.goalId) {
       // 编辑模式: 复制目标对象的属性
-      const goal = goalStore.getGoalById(props.goalId);
-      if (!goal) {
-        console.error('目标不存在');
-        return;
-      }
-      tempGoal.value = goal;
+      tempGoal.value = goalStore.initTempGoalByGoalId(props.goalId);
     } else {
       // 创建模式: 重置表单数据
       tempGoal.value = goalStore.initTempGoal();
@@ -209,44 +212,6 @@ const krNameValidation = () => {
 
 //  关键结果
 
-// 添加关键结果
-const showKrDialog = ref(false);
-const krDialogMode = ref<'create' | 'edit'>('create');
-
-function addKeyResult() {
-  krDialogMode.value = 'create';
-  editingKeyResultId.value = 'temp';
-  showKrDialog.value = true;
-}
-// 更新关键结果
-const updateKeyResult = (kr: IKeyResultCreate) => {
-  console.log('Updating Key Result:', kr);
-  goalStore.updateKeyResult(tempGoal.value.id, editingKeyResultId.value, kr);
-};
-// 创建关键结果
-const createKeyResult = (kr: IKeyResultCreate) => {
-  console.log('Saving Key Result:', kr);
-  if (props.mode === 'create') { // 在新建目标时
-    goalStore.addTempKeyResultToTempGoal(kr);
-  } else {
-    goalStore.addKeyResult(props.goalId, kr);
-  }
-
-};
-
-// 删除关键结果
-function deleteKeyResult(goalId: string, keyResultId: string) {
-  goalStore.deleteKeyResult(goalId, keyResultId);
-}
-
-// 编辑关键结果
-const editingKeyResultId = ref('temp'); // 用来标识要编辑的关键结果
-
-function editKeyResult(keyResultId: string) {
-  krDialogMode.value = 'edit';
-  editingKeyResultId.value = keyResultId;
-  showKrDialog.value = true;
-}
 
 function saveGoal() {
   if (!isValid.value) {
@@ -376,6 +341,47 @@ const handleComplete = () => {
 
 .form-row .form-group {
   flex: 1;
+}
+/* 目标标题 */
+.goal-title-input {
+  width: 100%;
+
+  position: static;
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+/* 颜色选择器样式 */
+.goal-color-picker {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  margin-left: 16px;
+  border-radius: 50%;
+  overflow: hidden;
+  cursor: pointer;
+
+}
+
+.color-input {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.color-circle {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  transition: transform 0.2s ease;
+}
+
+.color-circle:hover {
+  transform: scale(1.1);
 }
 
 /* 关键结果 */

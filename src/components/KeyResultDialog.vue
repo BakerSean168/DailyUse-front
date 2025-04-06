@@ -75,53 +75,43 @@
 
 <script setup lang="ts">
 import { reactive, computed, watch } from 'vue';
-import type { IKeyResultCreate, IKeyResult } from '../types/type';
 import { Icon } from '@iconify/vue/dist/iconify.js';
 import { useGoalStore } from '../stores/goalStore';
-import { storeToRefs } from 'pinia';
+
 const goalStore = useGoalStore();
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
     visible: boolean;
-    goalId: string; // 目标 ID，如果是临时目标则为 temp
-    keyResultId: string;
+    goalId: string;
+    keyResultId: string;  
     mode: 'create' | 'edit';
-}>();
+}>(), {
+    keyResultId: 'temp'  
+});
 
 const emit = defineEmits<{
-    (e: 'create', keyResult: IKeyResultCreate): void;
-    (e: 'update', keyResult: IKeyResultCreate): void;
-    (e: 'close'): void;
+    (e: 'save'): void;
+    (e: 'cancel'): void;
 }>();
 
-const { tempKeyResult } = storeToRefs(goalStore);
+
 
 watch(
     () => props.visible,
-    (newVisible) => {
-        console.log('Watch triggered:', { 
-            visible: newVisible, 
-            mode: props.mode,
-            goalId: props.goalId,
-            keyResultId: props.keyResultId 
-        });
-        if (newVisible) {
-            if (props.mode === 'edit') {
-                const preKeyResult = goalStore.getKeyResultById(props.goalId, props.keyResultId);
-                Object.assign(tempKeyResult.value, preKeyResult);
-                console.log('tempKeyResult', tempKeyResult.value);
-                console.log('编辑关键结果', preKeyResult);
+    (newVal) => {
+        if (newVal) {
+            if (props.keyResultId === 'temp') {
+                goalStore.initTempKeyResult();
             } else {
-
-                tempKeyResult.value = goalStore.initTempKeyResult();
-
+                goalStore.initTempKeyResultByKeyResultId(props.goalId, props.keyResultId);
             }
         }
     },
-    { immediate: true, deep: true }
-);
-
-
+    { immediate: true }
+)
+const tempKeyResult = computed(() => {
+    return goalStore.tempKeyResult;
+});
 
 // 表单合法性检验
 const errors = reactive({
@@ -183,19 +173,13 @@ const isValid = computed(() => {
 const handleSave = () => {
     validateAll();
     if (isValid.value) {
-        if (props.mode === 'create') {
-            emit('create', { ...tempKeyResult.value });
-            console.log('创建数据:', tempKeyResult.value);
-        } else {
-            emit('update', { ...tempKeyResult.value });
-            console.log('更新数据:', tempKeyResult.value);
-        }
-        emit('close');
+        emit('save')
+        emit('cancel');
     }
 };
 
 const handleCancel = () => {
-    emit('close');
+    emit('cancel');
 };
 </script>
 

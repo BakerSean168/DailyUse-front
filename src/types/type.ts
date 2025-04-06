@@ -4,6 +4,8 @@
 export interface IGoalBasicInfo {
     /** 标题 */
     title: string;
+    /** 目标颜色 */
+    color: string;
     /** 所在文件夹路径（Unix 格式，如 'goals/q3/product'） */
     dirId: string;
     /** 开始时间（ISO 8601 格式字符串，如 '2024-03-15T09:00:00'） */

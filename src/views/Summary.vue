@@ -1,115 +1,114 @@
 <template>
-    <div id="summary">
-        <header>
-            <Icon icon="octicon:graph-16" width="16" height="16" />
-            <h1>Summary</h1>
-        </header>
+  <div id="summary">
+    <header>
+      <h1>摘要</h1>
+      <div class="summary-header-info">
+        <div class="summary-header-today-layout">
+          <div class="summary-header-today-icon-layout">
+            <Icon icon="bi:list-task" width="20" height="20" style="color: #db6b6b" />
+            <span>1</span>
+          </div>
+          <span>今日任务</span>
+        </div>
+        <div class="summary-header-today-layout">
+          <div class="summary-header-today-icon-layout">
+            <Icon icon="bi:check2-circle" width="20" height="20" style="color: #db6b6b" />
+            <span>1</span>
+          </div>
+          <span>进行中目标</span>
+        </div>
+        <div class="summary-header-today-layout">
+          <div class="summary-header-today-icon-layout">
+            <Icon icon="bi:check2-circle" width="20" height="20" style="color: #db6b6b" />
+            <span>1</span>
+          </div>
+          <span>今日添加记录</span>
+        </div>
+      </div>
+    </header>
+    <main>
+      <div class="goals-container">
+        <GoalInfoShowCard v-for="goal in goals" :key="goal.id" :goal="goal" />
+      </div>
+    </main>
 
-       
-    </div>
+  </div>
 </template>
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
-
-const nav = ref("summary");
-
-const x = ref(0);
-const y = ref(0);
-
-const updateMouse = (e: MouseEvent) => {
-    x.value = e.clientX;
-    y.value = e.clientY;
-}
-
-onMounted(() => {
-    window.addEventListener('mousemove', updateMouse);
-})
-
-onUnmounted(() => {
-    window.removeEventListener('mousemove', updateMouse);
-})
-
-// const flat = function (arr, dep) {
-//     console.log(...arr);
-//     arr = [].concat(...arr);
-//     console.log(arr);
-// }
-// console.log(Date.now());
-// flat([1, 2, 3, [4,5,[6,7,8]]], 2);
-
-// const num1 = [1, 2, 3, [4,5,[6,7,8]] ];
-
-
+import { ref, computed, onUnmounted } from 'vue';
+import { useGoalStore } from '../stores/goalStore';
+import GoalInfoShowCard from '../components/GoalInfoShowCard.vue';
+import { Icon } from '@iconify/vue';
+const goalStore = useGoalStore();
+const goals = computed(() => {
+  console.log('goals', goalStore.getAllGoals);
+  return goalStore.getAllGoals;
+});
 </script>
 <style scoped>
 #summary {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    padding: 1rem;
-    height: 100%;
-    width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+  height: 100%;
+  width: 100%;
 }
 
-header {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    position: absolute;
-    left: 50%;
-    top: 50%;
+header {}
+
+.summary-header-info {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem;
+  background-color: #2b2b2b;
+  border-radius: 12px;
 }
-
-.box1 {
-    display: flex;
-    background-color: #000;
-    width: 300px;
-    height: 300px;
-    wrap: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    padding: 1rem;
-    border-radius: 0.5rem;
-
-    justify-content: center;
-    align-items: center;
-}
-
-.box2 {
-    position: absolute;
-    background-color: #f00;
-    width: 100px;
-    height: 100px;
-    padding: 1rem;
-    border-radius: 0.5rem;
-    animation: moveL 2s linear infinite;
+/* header最上方样式 */
+.summary-header-today-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: auto;
+  width: auto;
+  font-size: 0.8rem;
 
 }
+.summary-header-today-icon-layout {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  flex: 1;
 
-/* 定义旋转动画 */
-@keyframes moveL {
-  0% {
-    transform: translateX(0);  /* 初始位置 */
-  }
-  50% {
-    transform: translateX(100px);  /* 向右移动100px */
-  }
-  100% {
-    transform: translateX(0);  /* 返回原点（可改为-100px实现完整左右循环） */
-  }
+  width: 100%;
+  font-size: 1.5rem;
+  gap: 0.25rem;
+  color: #db6b6b;
 }
+/* 颜色变化 */
+.summary-header-today-task {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: auto;
+  width: auto;
+  font-size: 0.8rem;
 
-.btn {
-  /* 初始状态应用动画：1秒一圈，无限循环 */
-  animation: moveL 2s linear infinite;
-  /* 其他样式（如尺寸、定位等） */
-  width: 50px;
-  height: 50px;
-  background: #2196F3;
 }
+.summary-header-today-task-icon {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  flex: 1;
 
-/* 鼠标悬停时暂停动画 */
-.box2:hover {
-  animation-play-state: paused;
+  width: 100%;
+  font-size: 1.5rem;
+  gap: 0.25rem;
+  color: #db6b6b;
 }
 </style>

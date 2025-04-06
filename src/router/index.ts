@@ -1,4 +1,4 @@
-import { createMemoryHistory, createRouter } from 'vue-router'
+import { createMemoryHistory, createWebHistory, createRouter } from 'vue-router'
 import BasicLayout from '../layouts/BasicLayout.vue'
 import GoalManagement from '../views/GoalManagement.vue'
 
@@ -24,11 +24,16 @@ const routes = [
       }
     ]
   },
+  {
+    path: '/:pathMatch(.*)*' ,
+    redirect: '/'
+  }
 
 ]
 
 const router = createRouter({
-  history: createMemoryHistory(),
+  history: createWebHistory(),
+  // history: createMemoryHistory(),
   routes,
 })
 

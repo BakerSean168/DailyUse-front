@@ -12,7 +12,14 @@
             </div>
         </header>
         <main>
-            <div v-for="goal in goals" :key="goal.id" class="goal-card" @click="navigateToGoalInfo(goal.id)">
+            <div class="status-tabs">
+                <button v-for="tab in statusTabs" :key="tab.value" class="tab-btn"
+                    :class="{ active: currentStatus === tab.value }" @click="currentStatus = tab.value">
+                    {{ tab.label }}
+                    <span class="count">{{ getGoalCountByStatus(tab.value) }}</span>
+                </button>
+            </div>
+            <div v-for="goal in filteredGoals" :key="goal.id" class="goal-card" @click="navigateToGoalInfo(goal.id)">
                 <div class="goal-header icon-span">
                     <Icon icon="tabler:point" width="16" height="16" />
                     <span class="goal-title">{{ goal.title }}</span>
@@ -23,9 +30,12 @@
                 </div>
                 <div class="progress-bar">
                     <div class="progress-container">
-                        <div class="progress" :style="{ width: `36.4%` }"></div>
+                        <div class="progress" :style="{
+                            width: `${getGoalProgress(goal.id)}%`,
+                            background: `linear-gradient(90deg, ${goal.color || '#4CAF50'}, ${goal.color || '#8BC34A'})`
+                        }"></div>
                     </div>
-                    <span>36.4%</span>
+                    <span>{{ getGoalProgress(goal.id) }}%</span>
                 </div>
 
             </div>
@@ -50,16 +60,28 @@ const router = useRouter();
 const goalDirStore = useGoalDirStore();
 const goalStore = useGoalStore();
 
+// 目标分类
+const statusTabs = [
+    { label: '全部', value: 'all' },
+    { label: '进行中', value: 'in-progress' },
+    // { label: '已完成', value: 'completed' },
+    { label: '已过期', value: 'expired' }
+];
+const currentStatus = ref('all');
+
 const navigateToGoalInfo = (goalId: string) => {
     router.push({
         name: 'GoalInformation',
-        params: { 
+        params: {
             id: route.params.id, // Keep current directory id
             goalId: goalId      // Pass goal id
         }
     });
 };
 
+const getGoalProgress = (goalId: string): number => {
+    return goalStore.getGoalProgress(goalId) || 0;
+};
 // 计算出但前所在的目标节点的 ID
 const currentDirId = computed(() => {
     const id = route.params.id;
@@ -94,7 +116,41 @@ function formatDate(dateString: any) {
     // return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
 
-// 编辑目标相关
+const filteredGoals = computed(() => {
+    if (currentStatus.value === 'all') {
+        return goals.value;
+    }
+    if (currentStatus.value === 'in-progress') {
+        return goals.value.filter(goal => {
+            const now = new Date();
+            return new Date(goal.startTime) <= now && new Date(goal.endTime) >= now;
+        });
+    }
+    if (currentStatus.value === 'expired') {
+        return goals.value.filter(goal => {
+            const now = new Date();
+            return new Date(goal.endTime) < now;
+        });
+    }
+});
+const getGoalCountByStatus = (status: string) => {
+    if (status === 'all') {
+        return goals.value.length;
+    }
+    if (status === 'in-progress') {
+        return goals.value.filter(goal => {
+            const now = new Date();
+            return new Date(goal.startTime) <= now && new Date(goal.endTime) >= now;
+        }).length;
+    }
+    if (status === 'expired') {
+        return goals.value.filter(goal => {
+            const now = new Date();
+            return new Date(goal.endTime) < now;
+        }).length;
+    }
+    return 0;
+};
 
 </script>
 
@@ -104,6 +160,30 @@ function formatDate(dateString: any) {
     display: flex;
     flex-direction: column;
     gap: 1em;
+}
+/* 分类标签 */
+.status-tabs {
+    display: flex;
+    gap: 2em;
+    margin-bottom: 1em;
+}
+.status-tabs .tab-btn {
+    background-color: #2d2d2d;
+    color: #ccc;
+    padding: 0.5em 1em;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+
+    font-size: 1rem;
+    font-weight: 700;
+}
+.status-tabs .tab-btn.active {
+
+    color: rgb(89, 140, 206);
+    border-bottom: #5c88da solid 2px;
+
 }
 
 .btn-row {
@@ -153,7 +233,6 @@ function formatDate(dateString: any) {
 
 .progress {
     height: 100%;
-    background: linear-gradient(90deg, #4CAF50, #8BC34A);
     border-radius: 4px;
     transition: width 0.3s ease;
 }
