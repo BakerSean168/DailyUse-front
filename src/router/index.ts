@@ -13,6 +13,11 @@ const routes = [
         component: () => import('../views/Summary.vue')
       },
       {
+        path: '/task-management',
+        name: 'TaskManagement',
+        component: () => import('../views/TaskManagement.vue')
+      },
+      {
         path: '/goal-management/:id',
         name: 'GoalManagement',
         component: GoalManagement
@@ -26,7 +31,7 @@ const routes = [
   },
   {
     path: '/:pathMatch(.*)*' ,
-    redirect: '/'
+    redirect: '/summary'
   }
 
 ]

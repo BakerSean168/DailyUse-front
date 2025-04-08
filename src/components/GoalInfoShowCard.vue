@@ -131,7 +131,7 @@ const todayProgress = computed(() => {
     border-radius: 12px;
     padding: 1rem;
     min-width: 100px;
-    min-height: 100px;
+    min-height: 80px;
     background: linear-gradient(to right,
             var(--goal-color) var(--progress),
             transparent var(--progress));

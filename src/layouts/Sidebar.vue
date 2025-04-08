@@ -13,9 +13,9 @@
         <!-- 导航 -->
         <nav class="sidebar-nav">
             <ul>
-                <li v-for="(item, index) in items" :key="index" :to="item.path" class="button">
+                <li v-for="(item, index) in items" :key="index" :to="item.path" class="sidebar-nav-button" :class="{ 'active': $route.path === item.path }">
                     <router-link :to="item.path" class="nav-link">
-                        <Icon :icon="item.icon" width="24" height="24" />
+                        <Icon :icon="item.icon" width="24" height="24" :style="{ color: item.color }"/>
                         <span v-show="!isCollapsed" class="ml-1rem"> {{ item.name }}</span>
                     </router-link>
                 </li>
@@ -30,16 +30,16 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, ref } from 'vue';
+import { ref } from 'vue';
 import { Icon } from '@iconify/vue';
 import GoalDir from '../components/GoalDir.vue';
 const isCollapsed = ref(false);
 const toggleCollapse = () => isCollapsed.value = !isCollapsed.value;
 const items = [
-    { name: '摘要', path: '/summary', icon: 'material-symbols:article-outline-rounded' },
-    { name: '目标', path: '/goals', icon: 'carbon:goal' },
-    { name: '日历', path: '/calendar', icon: 'carbon:calendar' },
-    { name: '设置', path: '/settings', icon: 'uil:setting' },
+    { name: '摘要', path: '/summary', icon: 'material-symbols:article-outline-rounded', color: '#2fb9c8' },
+    { name: '任务', path: '/task-management', icon: 'tdesign:task', color: '#2fb9c8' },
+    { name: '日历', path: '/calendar', icon: 'carbon:calendar', color: '#2fb9c8' },
+    { name: '设置', path: '/settings', icon: 'uil:setting', color: '#2fb9c8' },
 ];
 
 </script>
@@ -114,6 +114,14 @@ const items = [
 
 .nav-link:hover {
     background-color: #555;
+}
+/* 导航栏选中后样式 */
+.sidebar-nav-button.active {
+    background-color:rgb(41, 90, 95);
+}
+.sidebar-nav-button.active .nav-link {
+    color: rgb(255, 255, 255);
+    font-weight: bold;
 }
 
 .goal-dir {
