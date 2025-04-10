@@ -44,7 +44,7 @@ import { Icon } from '@iconify/vue';
 import { useGoalDirStore } from '../stores/goalDirStore';
 import { useGoalStore } from '../stores/goalStore';
 import GoalDialog from './GoalDialog.vue';
-import type { IGoal } from '../types/type';
+import type { IGoal } from '../types/goal';
 
 const goalDirStore = useGoalDirStore();
 const goalStore = useGoalStore();
@@ -86,7 +86,7 @@ const updateGoal = (goal:IGoal) => {
 .header {
     width: 100%;
 }
-/* Dropdown styles */
+/* 下拉列表 */
 .dropdown {
     position: relative;
 }

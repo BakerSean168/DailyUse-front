@@ -8,16 +8,44 @@
             </div>
             <span>{{ goal?.title || '为检测到' }}</span>
             <div class="button-list">
+                <!-- 编辑按钮 -->
                 <button class="btn btn-secondary" @click="editGoal(goal?.id as string)">
                     <Icon icon="bxs:edit" width="24" height="24" />
                 </button>
-                <button class="btn btn-secondary" @click="showConfirmDialog = true">
-                    <Icon icon="material-symbols:delete-outline" width="24" height="24" />
-                </button>
-                <button class="btn btn-secondary" >
-                    <Icon icon="uiw:more" width="24" height="24" />
-                </button>
-                
+                <!-- 复盘功能下拉按钮（期中复盘、期末复盘、复盘记录） -->
+                <div class="dropdown">
+                    <button class="btn btn-secondary dropdown-trigger">
+                        <Icon icon="material-symbols:rate-review-outline" width="24" height="24" />
+                    </button>
+                    <div class="dropdown-menu">
+                        <div class="dropdown-item" @click="startMidtermReview(goal?.id as string)">
+                            <span>期中复盘</span>
+                        </div>
+                        <div class="dropdown-item" @click="">
+                            <span>期末复盘</span>
+                        </div>
+                        <div class="dropdown-item" @click="">
+                            <span>复盘记录</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- 更多功能下拉按钮（归档、删除） -->
+                <div class="dropdown">
+                    <button class="btn btn-secondary dropdown-trigger">
+                        <Icon icon="uiw:more" width="24" height="24" />
+                    </button>
+                    <div class="dropdown-menu">
+                        <div class="dropdown-item" @click="archiveGoal">
+                            <Icon icon="mdi:archive" width="20" height="20" />
+                            <span>归档</span>
+                        </div>
+                        <div class="dropdown-item" @click="showConfirmDialog = true">
+                            <Icon icon="material-symbols:delete-outline" width="20" height="20" />
+                            <span>删除</span>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </header>
         <main>
@@ -71,7 +99,8 @@
                         <div class="kr-values">
 
                             {{ keyResult.startValue }} → {{ keyResult.targetValue }}
-                            <button class="increment-btn" @click.stop="goalStore.updateKeyResultStartValue(goal?.id as string, keyResult.id, 1)">
+                            <button class="increment-btn"
+                                @click.stop="goalStore.updateKeyResultStartValue(goal?.id as string, keyResult.id, 1)">
                                 <Icon icon="material-symbols:add" width="20" height="20" />
                             </button>
                         </div>
@@ -82,23 +111,10 @@
             <!-- 备忘录 -->
             <div class="goal-infomation-show-memo"></div>
         </main>
-        <GoalDialog
-            :visible="showGoalDialog"
-            :goal-id="editGoalId"
-            :mode="editMode"
-            @close="showGoalDialog = false"
-            @save="saveGoal"
-            @update="saveGoal"
-        />
-        <ConfirmDialog
-            :visible="showConfirmDialog"
-            title="删除目标"
-            message="确定要删除该目标吗？此操作不可撤销。"
-            confirm-text="确认"
-            cancel-text="取消"
-            @confirm="handleDeleteGoal"
-            @cancel="showConfirmDialog = false"
-        />
+        <GoalDialog :visible="showGoalDialog" :goal-id="editGoalId" :mode="editMode" @close="showGoalDialog = false"
+            @save="saveGoal" @update="saveGoal" />
+        <ConfirmDialog :visible="showConfirmDialog" title="删除目标" message="确定要删除该目标吗？此操作不可撤销。" confirm-text="确认"
+            cancel-text="取消" @confirm="handleDeleteGoal" @cancel="showConfirmDialog = false" />
     </div>
 </template>
 <script setup lang="ts">
@@ -108,6 +124,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useGoalStore } from '../stores/goalStore';
 import GoalDialog from '../components/GoalDialog.vue';
 import { useGoalDialog } from '../composables/useGoalDialog';
+import { useGoalReview } from '../composables/useGoalReview';
 import ConfirmDialog from '../components/ConfirmDialog.vue';
 
 
@@ -115,6 +132,7 @@ const route = useRoute();
 const router = useRouter();
 const goalStore = useGoalStore();
 const { showGoalDialog, editGoal, editMode, editGoalId, saveGoal } = useGoalDialog();
+const { startMidtermReview } = useGoalReview();
 
 const goal = computed(() => {
     const goalId = route.params.goalId as string;
@@ -195,6 +213,19 @@ const handleDeleteGoal = async () => {
     }
 };
 
+// 归档目标
+const archiveGoal = async () => {
+    // try {
+    //     await goalStore.archiveGoal(goal.value?.id as string);
+    //     showConfirmDialog.value = false;
+    //     // Navigate back after successful archiving
+    //     router.back();
+    // } catch (error) {
+    //     console.error('Failed to archive goal:', error);
+    // }
+    console.log('归档目标');
+};
+
 </script>
 <style scoped lang="css">
 .goal-info-show-header {
@@ -260,8 +291,8 @@ const handleDeleteGoal = async () => {
     transform: rotate(-90deg);
     /* Start from top */
     position: absolute;
-    
-    
+
+
 }
 
 .progress-ring__circle--bg {
@@ -410,6 +441,7 @@ const handleDeleteGoal = async () => {
     color: #ccc;
 
 }
+
 .increment-btn {
     position: absolute;
 

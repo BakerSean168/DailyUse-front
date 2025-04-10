@@ -118,7 +118,7 @@ import { ref, computed, reactive, watch } from 'vue';
 import { Icon } from '@iconify/vue';
 import { useGoalStore } from '../stores/goalStore';
 import { useGoalDirStore } from '../stores/goalDirStore';
-import type { IGoal } from '../types/type';
+import type { IGoal } from '../types/goal';
 import KeyResultDialog from './KeyResultDialog.vue';
 import { storeToRefs } from 'pinia';
 import { useGoalDialog } from '../composables/useGoalDialog';

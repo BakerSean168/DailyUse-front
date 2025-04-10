@@ -39,7 +39,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { Icon } from '@iconify/vue';
-import type { IGoal } from '../types/type';
+import type { IGoal } from '../types/goal';
 import { useGoalStore } from '../stores/goalStore';
 
 const props = defineProps<{

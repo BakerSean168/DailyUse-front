@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import type { IGoalDir } from "../types/type";
+import type { IGoalDir } from "../types/goal";
 import { v4 as uuidv4 } from 'uuid';
 
 

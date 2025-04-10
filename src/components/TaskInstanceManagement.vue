@@ -85,7 +85,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, watchEffect } from 'vue';
+import { ref, computed, watchEffect } from 'vue';
 import { Icon } from '@iconify/vue';
 import { useTaskStore } from '../stores/taskStore';
 import { useGoalStore } from '../stores/goalStore';

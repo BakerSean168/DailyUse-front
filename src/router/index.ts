@@ -26,6 +26,11 @@ const routes = [
         path: '/goal-management/:id/information:goalId',
         name: 'GoalInformation',
         component: () => import('../views/GoalInfoShow.vue')
+      },
+      {
+        path: '/goal-management/:id/review:goalId',
+        name: 'GoalReview',
+        component: () => import('../views/GoalReview.vue')
       }
     ]
   },

@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import type { IGoal, IGoalCreate, IKeyResult, IKeyResultCreate } from "../types/type";
+import type { IGoal, IGoalCreate, IKeyResult, IKeyResultCreate } from "../types/goal";
 import { v4 as uuidv4 } from 'uuid';
 
 export const useGoalStore = defineStore('goal', {
@@ -67,9 +67,10 @@ export const useGoalStore = defineStore('goal', {
         getGoalById: (state) => (id: string) => {
             return state.goals.find(g => g.id === id);
         },
+        // 获取目标进度
         getGoalProgress: (state) => (goalId: string) => {
             const goal = state.goals.find(g => g.id === goalId);
-            if (!goal) return null;
+            if (!goal) return 0;
             const totalWeight = goal.keyResults.reduce((acc, kr) => acc + kr.weight, 0);
             const totalProgress = goal.keyResults.reduce((acc, kr) => 
                 acc + (kr.startValue / kr.targetValue) * kr.weight, 0);

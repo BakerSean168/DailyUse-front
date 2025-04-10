@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import type { IGoal } from '../types/type'
+import type { IGoal } from '../types/goal'
 import { useGoalStore } from '../stores/goalStore'
 
 export function useGoalDialog() {

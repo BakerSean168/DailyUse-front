@@ -36,7 +36,78 @@ export const useTaskStore = defineStore('task', {
         getAllTaskInstances(): ITaskInstance[] {
             return this.taskInstances;
         },
-        
+        getTaskStatsForGoal: (state) =>
+            (goalId: string, startDate: string, endDate: string) => {
+                const tasks = state.taskInstances.filter(task => {
+                    const taskDate = new Date(task.date);
+                    const start = new Date(startDate);
+                    const end = new Date(endDate);
+
+                    // 检查是否为相关目标
+                    const isRelatedToGoal = task.keyResultLinks?.some(
+                        link => link.goalId === goalId
+                    );
+
+                    return isRelatedToGoal &&
+                        taskDate >= start &&
+                        taskDate <= end;
+                });
+
+                return {
+                    total: tasks.length,
+                    completed: tasks.filter(t => t.completed).length,
+                    incomplete: tasks.filter(t => !t.completed).length,
+                    completionRate: tasks.length ?
+                        (tasks.filter(t => t.completed).length / tasks.length) * 100 : 0,
+                    missedTasks: tasks.filter(t =>
+                        !t.completed && new Date(t.date) < new Date()
+                    ).length
+                };
+            },
+        // Get task completion timeline for a goal
+        getTaskCompletionTimeline: (state) =>
+            (goalId: string, startDate: string, endDate: string) => {
+                const timeline: Record<string, {
+                    total: number;
+                    completed: number;
+                    date: string;
+                }> = {};
+
+                // Create date entries
+                let currentDate = new Date(startDate);
+                const end = new Date(endDate);
+
+                while (currentDate <= end) {
+                    const dateStr = currentDate.toISOString().split('T')[0];
+                    timeline[dateStr] = {
+                        total: 0,
+                        completed: 0,
+                        date: dateStr
+                    };
+                    currentDate.setDate(currentDate.getDate() + 1);
+                }
+
+                // Fill in task data
+                state.taskInstances
+                    .filter(task => {
+                        const taskDate = new Date(task.date);
+                        const start = new Date(startDate);
+                        const end = new Date(endDate);
+                        return task.keyResultLinks?.some(link => link.goalId === goalId) &&
+                            taskDate >= start && taskDate <= end;
+                    })
+                    .forEach(task => {
+                        const dateStr = new Date(task.date).toISOString().split('T')[0];
+                        if (timeline[dateStr]) {
+                            timeline[dateStr].total++;
+                            if (task.completed) {
+                                timeline[dateStr].completed++;
+                            }
+                        }
+                    });
+
+                return Object.values(timeline);
+            }
     },
 
     actions: {
@@ -73,8 +144,8 @@ export const useTaskStore = defineStore('task', {
                             days: [...(taskTemplate.repeatPattern.days || [])],
                         },
                         priority: taskTemplate.priority,
-                        keyResultLinks: taskTemplate.keyResultLinks ? 
-                            taskTemplate.keyResultLinks.map(link => ({...link})) : [],
+                        keyResultLinks: taskTemplate.keyResultLinks ?
+                            taskTemplate.keyResultLinks.map(link => ({ ...link })) : [],
                         createdAt: taskTemplate.createdAt,
                         updatedAt: taskTemplate.updatedAt,
                     };
@@ -82,7 +153,7 @@ export const useTaskStore = defineStore('task', {
                     console.error('Task template not found');
                 }
             }
-            
+
         },
         // 重置任务模板
         resetTempTaskTemplate() {
@@ -124,7 +195,7 @@ export const useTaskStore = defineStore('task', {
                             days: [...(this.tempTaskTemplate.repeatPattern.days || [])],
                         },
                         priority: this.tempTaskTemplate.priority,
-                        keyResultLinks: this.tempTaskTemplate.keyResultLinks ? 
+                        keyResultLinks: this.tempTaskTemplate.keyResultLinks ?
                             this.tempTaskTemplate.keyResultLinks.map(link => ({
                                 goalId: link.goalId,
                                 keyResultId: link.keyResultId,
@@ -157,17 +228,17 @@ export const useTaskStore = defineStore('task', {
         async completeTask(taskId: string) {
             const goalStore = useGoalStore();
             const taskIndex = this.taskInstances.findIndex(t => t.id === taskId);
-            
+
             if (taskIndex !== -1) {
                 const task = this.taskInstances[taskIndex];
-                
+
                 // Update task completion status
                 this.taskInstances[taskIndex] = {
                     ...task,
                     completed: true,
                     completedAt: new Date().toISOString()
                 };
-        
+
                 // Update linked key results if any
                 if (task.keyResultLinks?.length) {
                     for (const link of task.keyResultLinks) {
@@ -178,10 +249,10 @@ export const useTaskStore = defineStore('task', {
                         );
                     }
                 }
-        
+
                 return true;
             }
-        
+
             console.error('Task not found:', taskId);
             return false;
         }
