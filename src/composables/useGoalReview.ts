@@ -29,7 +29,6 @@ export function useGoalReview() {
     const showGoalReviewRecored = ref(false); // 控制复盘记录的显示与隐藏
     const goalId = route.params.goalId as string;
     const allReviews = goalReviewStore.getReviewsByGoalId(goalId); // 获取所有复盘记录
-    const re = goalReviewStore.getAllReviews; // Accessing it as a property
     // 期中复盘相关
     /* 开始期中复盘 */
     const startMidtermReview = (goalId: string) => {
