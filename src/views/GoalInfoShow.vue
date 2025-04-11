@@ -24,7 +24,7 @@
                         <div class="dropdown-item" @click="">
                             <span>期末复盘</span>
                         </div>
-                        <div class="dropdown-item" @click="">
+                        <div class="dropdown-item" @click="viewGoalReviewRecord()">
                             <span>复盘记录</span>
                         </div>
                     </div>
@@ -115,6 +115,7 @@
             @save="saveGoal" @update="saveGoal" />
         <ConfirmDialog :visible="showConfirmDialog" title="删除目标" message="确定要删除该目标吗？此操作不可撤销。" confirm-text="确认"
             cancel-text="取消" @confirm="handleDeleteGoal" @cancel="showConfirmDialog = false" />
+        <GoalReviewCard :visible="showGoalReviewRecored" @close="closeGoalReviewRecord" />
     </div>
 </template>
 <script setup lang="ts">
@@ -126,13 +127,14 @@ import GoalDialog from '../components/GoalDialog.vue';
 import { useGoalDialog } from '../composables/useGoalDialog';
 import { useGoalReview } from '../composables/useGoalReview';
 import ConfirmDialog from '../components/ConfirmDialog.vue';
+import GoalReviewCard from '../components/GoalReviewCard.vue';
 
 
 const route = useRoute();
 const router = useRouter();
 const goalStore = useGoalStore();
 const { showGoalDialog, editGoal, editMode, editGoalId, saveGoal } = useGoalDialog();
-const { startMidtermReview } = useGoalReview();
+const { showGoalReviewRecored, viewGoalReviewRecord, closeGoalReviewRecord ,startMidtermReview } = useGoalReview();
 
 const goal = computed(() => {
     const goalId = route.params.goalId as string;
@@ -238,7 +240,7 @@ const archiveGoal = async () => {
 /* 基本信息 */
 .goal-info-show-basic {
 
-    width: 100%;
+    width: 90%;
     height: 150px;
     background-color: rgb(76, 78, 80);
     border-radius: 10px;

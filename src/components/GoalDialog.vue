@@ -197,16 +197,16 @@ const titleValidation = () => {
     validationErrors.title = undefined;
   }
 };
-// 关键结果名称验证
-const krNameValidation = () => {
-  tempGoal.value.keyResults.forEach((kr, index) => {
-    if (kr.name.trim() === '') {
-      validationErrors.keyResults = `关键结果 #${index + 1} 不能为空`;
-    } else {
-      validationErrors.keyResults = undefined;
-    }
-  });
-}
+// // 关键结果名称验证
+// const krNameValidation = () => {
+//   tempGoal.value.keyResults.forEach((kr, index) => {
+//     if (kr.name.trim() === '') {
+//       validationErrors.keyResults = `关键结果 #${index + 1} 不能为空`;
+//     } else {
+//       validationErrors.keyResults = undefined;
+//     }
+//   });
+// }
 
 
 

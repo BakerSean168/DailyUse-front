@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import type { IGoal, IGoalCreate, IKeyResult, IKeyResultCreate } from "../types/goal";
+import type { IGoal, IKeyResult, IKeyResultCreate } from "../types/goal";
 import { v4 as uuidv4 } from 'uuid';
 
 export const useGoalStore = defineStore('goal', {

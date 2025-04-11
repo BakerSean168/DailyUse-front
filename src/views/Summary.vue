@@ -35,7 +35,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { ref, computed, onUnmounted } from 'vue';
+import { computed } from 'vue';
 import { useGoalStore } from '../stores/goalStore';
 import GoalInfoShowCard from '../components/GoalInfoShowCard.vue';
 import { Icon } from '@iconify/vue';
@@ -54,8 +54,6 @@ const goals = computed(() => {
   height: 100%;
   width: 100%;
 }
-
-header {}
 
 .summary-header-info {
   display: flex;

@@ -29,14 +29,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref } from 'vue';
 import { Icon } from '@iconify/vue';
-import { useTaskStore } from '../stores/taskStore';
-
 import TaskTemplateManagement from '../components/TaskTemplateManagement.vue';
 import TaskInstanceManagement from '../components/TaskInstanceManagement.vue';
-
-const taskStore = useTaskStore();
 const activeTab = ref('daily');
 const tabs = [
     {

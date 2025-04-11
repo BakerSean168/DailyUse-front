@@ -49,11 +49,55 @@ export interface Review {
 
 export const useGoalReviewStore = defineStore('goalReview', {
     state: () => ({
-        reviews: [] as Review[],            // 复盘记录列表
+        reviews: [
+            {
+                id: "test-review-001",
+                goalId: "test-goal-001",
+                goalProgress: {
+                    currentProgress: 75,
+                    analysis: "目标完成度良好，按计划推进中"
+                },
+                keyResultProgress: [
+                    {
+                        id: "kr-001",
+                        name: "完成用户注册功能",
+                        targetValue: 100,
+                        currentValue: 80,
+                        analysis: "基本功能已完成，还需优化体验"
+                    },
+                    {
+                        id: "kr-002",
+                        name: "提升系统性能",
+                        targetValue: 200,
+                        currentValue: 150,
+                        analysis: "性能提升明显，继续优化中"
+                    }
+                ],
+                taskProgress: {
+                    total: 10,
+                    completed: 7,
+                    completionRate: 70,
+                    missedTasks: 3,
+                    analysis: "大部分任务按时完成，少数任务需要加快进度"
+                },
+                selfDiagnosis: {
+                    achievements: "1. 完成核心功能开发\n2. 提升了系统整体性能\n3. 优化了用户体验",
+                    challenges: "1. 技术难点突破耗时\n2. 团队协作需要改进\n3. 部分任务延期",
+                    learnings: "1. 提前规划很重要\n2. 需要加强技术储备\n3. 改进沟通效率",
+                    nextSteps: "1. 完成剩余任务\n2. 进行性能优化\n3. 准备用户测试"
+                },
+                createdAt: "2025-04-11T10:00:00.000Z",
+                updatedAt: "2025-04-11T10:00:00.000Z"
+            }
+        ] as Review[],            // 复盘记录列表
         tempReview: null as Review | null, // 当前复盘记录
     }),
 
     getters: {
+        // 获取所有复盘记录
+        getAllReviews: (state) => {
+            return state.reviews;
+        },
         // 获取指定目标的所有复盘记录
         getReviewsByGoalId: (state) => (goalId: string) => {
             return state.reviews.filter(review => review.goalId === goalId);
@@ -73,6 +117,9 @@ export const useGoalReviewStore = defineStore('goalReview', {
     },
 
     actions: {
+        addGoalReview(review: Review) {
+            this.reviews.push(review);
+        },
         // 创建新的复盘记录
         initTempReview(goalId: string): Review {
             const goalStore = useGoalStore();
@@ -96,14 +143,10 @@ export const useGoalReviewStore = defineStore('goalReview', {
             }));
 
             // 获取任务完成情况
-            const taskStats = taskStore.getTaskStatsForGoal(
-                goalId,
-                goal.startTime,
-                goal.endTime
-            );
+            const taskStats = taskStore.getTaskStatsForGoal(goalId);
 
             const newReview: Review = {
-                id: uuidv4(),
+                id: 'temp',
                 goalId,
                 goalProgress: {
                     currentProgress,
@@ -111,10 +154,10 @@ export const useGoalReviewStore = defineStore('goalReview', {
                 },
                 keyResultProgress,
                 taskProgress: {
-                    total: taskStats.total,
-                    completed: taskStats.completed,
-                    completionRate: taskStats.completionRate,
-                    missedTasks: taskStats.missedTasks,
+                    total: taskStats.overall.total,
+                    completed: taskStats.overall.completed,
+                    completionRate: taskStats.overall.completionRate,
+                    missedTasks: taskStats.overall.missedTasks,
                     analysis: ''
                 },
                 selfDiagnosis: {
@@ -126,57 +169,18 @@ export const useGoalReviewStore = defineStore('goalReview', {
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
             };
-
-            this.reviews.push(newReview);
             this.tempReview = newReview;
             return newReview;
         },
-
-        // 更新目标进度
-        updateGoalProgress(reviewId: string, progress: Partial<GoalProgress>) {
+        // 获取已有的复盘记录
+        getExistingReview(reviewId: string): Review | null {
             const review = this.reviews.find(r => r.id === reviewId);
             if (review) {
-                review.goalProgress = {
-                    ...review.goalProgress,
-                    ...progress
-                };
-                review.updatedAt = new Date().toISOString();
+                this.tempReview = { ...review }; // 创建副本
+                return this.tempReview;
             }
+            return null;
         },
-
-        // 更新关键结果进度
-        updateKeyResultProgress(reviewId: string, krProgress: KeyResultProgress[]) {
-            const review = this.reviews.find(r => r.id === reviewId);
-            if (review) {
-                review.keyResultProgress = krProgress;
-                review.updatedAt = new Date().toISOString();
-            }
-        },
-
-        // 更新任务完成情况
-        updateTaskProgress(reviewId: string, progress: Partial<TaskProgress>) {
-            const review = this.reviews.find(r => r.id === reviewId);
-            if (review) {
-                review.taskProgress = {
-                    ...review.taskProgress,
-                    ...progress
-                };
-                review.updatedAt = new Date().toISOString();
-            }
-        },
-
-        // 更新自我诊断
-        updateSelfDiagnosis(reviewId: string, diagnosis: Partial<SelfDiagnosis>) {
-            const review = this.reviews.find(r => r.id === reviewId);
-            if (review) {
-                review.selfDiagnosis = {
-                    ...review.selfDiagnosis,
-                    ...diagnosis
-                };
-                review.updatedAt = new Date().toISOString();
-            }
-        },
-
         // 删除复盘记录
         deleteReview(reviewId: string) {
             const index = this.reviews.findIndex(r => r.id === reviewId);
@@ -187,12 +191,26 @@ export const useGoalReviewStore = defineStore('goalReview', {
                 }
             }
         },
-        // 设置当前复盘记录
+        // 保存复盘记录
+        saveReview() {
+            if (!this.tempReview || !this.tempReview.goalId) {
+                throw new Error('Invalid tempReview: goalId is required');
+            }
+            const review: Review = {
+                ...this.tempReview,
+                id: uuidv4(), // 生成唯一ID
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            };
+            console.log('Saving review:', review);
+            this.reviews.push(review);
+            this.tempReview = null; // 清空临时复盘记录
+        },
         setCurrentReview(reviewId: string) {
             const review = this.reviews.find(r => r.id === reviewId);
             this.tempReview = review || null;
         },
     },
 
-    persist: true // 持久化存储
+    persist: true,
 });

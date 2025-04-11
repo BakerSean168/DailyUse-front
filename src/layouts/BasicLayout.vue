@@ -23,8 +23,17 @@ import Siderbar from './Sidebar.vue';
     flex-direction: row;
 }
 
+.sidebar {
+
+
+    box-sizing: border-box;
+    /* padding and border included in specified height */
+
+    overflow-y: auto;
+}
 .main {
     flex: 1;
     padding: 1em;
+    overflow-y: auto;
 }
 </style>

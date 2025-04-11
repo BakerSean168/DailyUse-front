@@ -48,10 +48,10 @@
 import { Icon } from '@iconify/vue';
 import { ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { computed, onMounted } from 'vue';
+import { computed } from 'vue';
 import { useGoalDirStore } from '../stores/goalDirStore';
 import { useGoalStore } from '../stores/goalStore';
-import GoalDialog from '../components/GoalDialog.vue';
+
 
 
 

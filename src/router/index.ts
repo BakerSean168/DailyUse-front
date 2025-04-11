@@ -1,7 +1,7 @@
-import { createMemoryHistory, createWebHistory, createRouter } from 'vue-router'
+import { createWebHistory, createRouter } from 'vue-router'
 import BasicLayout from '../layouts/BasicLayout.vue'
 import GoalManagement from '../views/GoalManagement.vue'
-
+// import { createMemoryHistory, createWebHistory, createRouter } from 'vue-router'
 const routes = [
   {
     path: '/',

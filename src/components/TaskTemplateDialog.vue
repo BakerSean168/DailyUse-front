@@ -90,12 +90,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, reactive } from 'vue';
+import {  computed, reactive } from 'vue';
 import { Icon } from '@iconify/vue';
 import { useGoalStore } from '../stores/goalStore';
 import { useTaskStore } from '../stores/taskStore';
 
-const props = defineProps<{
+defineProps<{
     visible: boolean;
 }>();
 

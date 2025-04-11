@@ -1,10 +1,12 @@
 import { defineStore } from "pinia";
 import { v4 as uuidv4 } from 'uuid';
-import type { ITaskInstance, ITaskStats, ITaskTemplate, RepeatPattern } from "../types/task";
+import type { ITaskInstance, ITaskTemplate } from "../types/task";
 import { generateTaskInstances } from '../utils/taskUtils';
 import { useGoalStore } from "./goalStore";
 
 export const useTaskStore = defineStore('task', {
+
+
     state: () => ({
         taskInstances: [] as ITaskInstance[],
         taskTemplates: [] as ITaskTemplate[],
@@ -36,34 +38,91 @@ export const useTaskStore = defineStore('task', {
         getAllTaskInstances(): ITaskInstance[] {
             return this.taskInstances;
         },
-        getTaskStatsForGoal: (state) =>
-            (goalId: string, startDate: string, endDate: string) => {
-                const tasks = state.taskInstances.filter(task => {
-                    const taskDate = new Date(task.date);
-                    const start = new Date(startDate);
-                    const end = new Date(endDate);
-
-                    // 检查是否为相关目标
-                    const isRelatedToGoal = task.keyResultLinks?.some(
-                        link => link.goalId === goalId
-                    );
-
-                    return isRelatedToGoal &&
-                        taskDate >= start &&
-                        taskDate <= end;
-                });
-
+        getTaskStatsForGoal: (state) => (goalId: string) => {
+            const goalStore = useGoalStore();
+            const goal = goalStore.getGoalById(goalId);
+            
+            if (!goal) {
+                console.error('Goal not found');
                 return {
-                    total: tasks.length,
-                    completed: tasks.filter(t => t.completed).length,
-                    incomplete: tasks.filter(t => !t.completed).length,
-                    completionRate: tasks.length ?
-                        (tasks.filter(t => t.completed).length / tasks.length) * 100 : 0,
-                    missedTasks: tasks.filter(t =>
-                        !t.completed && new Date(t.date) < new Date()
-                    ).length
+                    overall: {
+                        total: 0,
+                        completed: 0,
+                        incomplete: 0,
+                        completionRate: 0,
+                        missedTasks: 0
+                    },
+                    taskDetails: []
                 };
-            },
+            }
+        
+            // 获取目标相关的所有任务
+            const tasks = state.taskInstances.filter(task => {
+                const taskDate = new Date(task.date);
+                const start = new Date(goal.startTime);
+                const end = new Date(goal.endTime);
+                const today = new Date();
+        
+                const isRelatedToGoal = task.keyResultLinks?.some(
+                    link => link.goalId === goalId
+                );
+        
+                return isRelatedToGoal && 
+                       taskDate >= start && 
+                       taskDate <= end &&
+                       taskDate <= today; // 只统计到当前日期
+            });
+        
+            // 按任务模板分组统计
+            const tasksByTemplate = tasks.reduce((acc, task) => {
+                const templateId = task.templateId;
+                const template = state.taskTemplates.find(t => t.id === templateId);
+                
+                if (!acc[templateId]) {
+                    acc[templateId] = {
+                        templateId,
+                        title: template?.title || '未知任务',
+                        total: 0,
+                        completed: 0
+                    };
+                }
+                
+                acc[templateId].total++;
+                if (task.completed) {
+                    acc[templateId].completed++;
+                }
+                
+                return acc;
+            }, {} as Record<string, {
+                templateId: string;
+                title: string;
+                total: number;
+                completed: number;
+            }>);
+        
+            // 计算总体统计
+            const overallStats = {
+                total: tasks.length,
+                completed: tasks.filter(t => t.completed).length,
+                incomplete: tasks.filter(t => !t.completed).length,
+                completionRate: tasks.length ?
+                    (tasks.filter(t => t.completed).length / tasks.length) * 100 : 0,
+                missedTasks: tasks.filter(t =>
+                    !t.completed && new Date(t.date) < new Date()
+                ).length
+            };
+        
+            return {
+                overall: overallStats,
+                taskDetails: Object.values(tasksByTemplate)
+                    .map(stats => ({
+                        ...stats,
+                        completionRate: stats.total ? 
+                            (stats.completed / stats.total) * 100 : 0
+                    }))
+                    .sort((a, b) => b.total - a.total) // 按任务总数降序排序
+            };
+        },
         // Get task completion timeline for a goal
         getTaskCompletionTimeline: (state) =>
             (goalId: string, startDate: string, endDate: string) => {
